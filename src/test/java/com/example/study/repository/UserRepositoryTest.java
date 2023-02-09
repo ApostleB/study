@@ -45,7 +45,6 @@ public class UserRepositoryTest {
         Optional<User> user = userRepository.findByAccountAndEmail("TestUser03","TestUser03@gmail.com");
 
         user.ifPresent(selectUser ->{
-
             selectUser.getOrderDetailList().stream().forEach(detail ->{
                 Item item = detail.getItem();
                 System.out.println(item);
