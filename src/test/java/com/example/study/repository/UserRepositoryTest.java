@@ -1,71 +1,89 @@
 package com.example.study.repository;
 
-import com.example.study.StudyApplicationTests;
+import com.example.study.model.entity.Item;
 import com.example.study.model.entity.User;
-import org.springframework.beans.factory.annotation.Autowired;
-
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-public class UserRepositoryTest extends StudyApplicationTests {
+@DataJpaTest                                                                    // JPA 테스트 관련 컴포넌트만 Import
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)    // 실제 db 사용
+@DisplayName("ItemRepositoryTest 테스트")
+public class UserRepositoryTest {
 
-    //DI
+    // Dependency Injection (DI)
     @Autowired
     private UserRepository userRepository;
+
     @Test
     public void create(){
-        // String sql = insert into user (%s, %s, %d) value(account, email, age);
+        // String sql = insert into user (%s, %s , %d ) value (account, email, age);
         User user = new User();
-        user.setAccount("TEST USER 01");
-        user.setPhoneNumber("010-5099-1699");
-        user.setEmail("Test@test.com");
+        user.setAccount("TestUser03");
+        user.setEmail("TestUser03@gmail.com");
+        user.setPhoneNumber("010-1111-3333");
         user.setCreatedAt(LocalDateTime.now());
-        user.setCreatedBy("Developer");
+        user.setCreatedBy("TestUser3");
 
         User newUser = userRepository.save(user);
-        System.out.println("nweUser : "+ newUser);
+        System.out.println("newUser : "+newUser);
 
     }
+
     @Test
+    @Transactional
     public void read(){
-        Optional<User> user = userRepository.findById(2L);
+
+        // select * from user where id = ?
+        Optional<User> user = userRepository.findByAccountAndEmail("TestUser03","TestUser03@gmail.com");
 
         user.ifPresent(selectUser ->{
-            System.out.println("user : " + selectUser );
-            System.out.println("email : " + selectUser.getEmail() );
+
+            selectUser.getOrderDetailList().stream().forEach(detail ->{
+                Item item = detail.getItem();
+                System.out.println(item);
+            });
+
         });
     }
+
     @Test
+    @Transactional
     public void update(){
+
         Optional<User> user = userRepository.findById(2L);
 
         user.ifPresent(selectUser ->{
-            selectUser.setAccount("aaaa");
+            selectUser.setAccount("PPPP");
             selectUser.setUpdatedAt(LocalDateTime.now());
             selectUser.setUpdatedBy("update method()");
 
             userRepository.save(selectUser);
         });
-        System.out.println(user);
-
     }
-    @Test
-    public void delete(){
-        Optional<User> user = userRepository.findById(2L);
 
-        user.ifPresent(selectUser -> {
+    @Test
+    @Transactional
+    public void delete(){
+        Optional<User> user = userRepository.findById(3L);
+
+        Assertions.assertTrue(user.isPresent());    // false
+
+
+        user.ifPresent(selectUser->{
             userRepository.delete(selectUser);
         });
 
-        Optional<User> deleteUser = userRepository.findById(2L);
-        if(deleteUser.isPresent()){
-            System.out.println("데이터 존재 : " + deleteUser.get());
-        }else{
-            System.out.println("데이터가 삭제되어 존재하지 않음");
-        }
+        Optional<User> deleteUser = userRepository.findById(3L);
+
+        Assertions.assertFalse(deleteUser.isPresent()); // false
     }
+
 }
